@@ -286,7 +286,7 @@
               <div class="subTitle">Action</div>
               <div><input type="radio" name="opponentAction" id="opponentBasicAttack" onclick="setOptions()" /> Basic Attack</div>
               <div><input type="radio" name="opponentAction" id="opponentSmite" onclick="setOptions()" /> Smite</div>
-              <div><input type="radio" name="opponentAction" id="opponentCureWounds" onclick="setOptions()" /> Cure Wounds</div>
+              <div><input type="radio" name="opponentAction" id="opponentCureWounds" onclick="setOptions()" /> Healing</div>
             </div>
             <div class="prefColumn">
               <div class="subTitle">Reaction</div>
@@ -373,13 +373,16 @@
     tactics() {
       if (this.action) {
         if (round === 1) {
-          attackAction(this); // Normal Action
-          attackAction(this); // Action Surge
+          this.attackAction(); // Normal Action
+          this.attackAction(); // Action Surge
         }
-        else if (this.prefs.secondWind && this.secondWindRemaining && (this.curHP <= (this.maxHP - this.healTrigger))) { this.secondWind() }
-        else { attackAction(this) }
+        else if (this.healthCheck()) { this.secondWind() }
+        else { this.attackAction() }
         this.action = 0;
       }
+    },
+    attackAction() {
+      for (var i = 0; i < this.attacks; i++) { this.makeAttack() }
     },
     makeAttack() {
       this.maneuver = 1;
@@ -503,6 +506,9 @@
       if (result < (marquis.AC + defensiveBonus)) { return `miss` }
       else { return `hit` }
     },
+    healthCheck() {
+      return (this.prefs.secondWind && this.secondWindRemaining && (this.curHP <= (this.maxHP - this.healTrigger)));
+    },
     secondWind() {
       this.curHP += rollD(10) + 5;
       this.secondWindRemaining = false;
@@ -532,8 +538,8 @@
     sacredWeapon: 0,
     curHP: 70,
     maxHP: 70,
-    curHealHP: 35,
-    maxHealHP: 35,
+    curLayHands: 35,
+    maxLayHands: 35,
     healTrigger: 35,
     cur1stSlots: 4,
     max1stSlots: 4,
@@ -567,11 +573,14 @@
     },
     tactics() {
       if (this.action) {
-        if (round > 10) { this.sacredWeapon = 0 }
-        if (round === 1 && magic) { this.sacredWeapon = this.chaBonus }
-        else if (magic && this.curHealHP && (this.curHP <= (this.maxHP - this.healTrigger))) { this.layHands() }
-        else { attackAction(this) }
+        if (magic && round > 10) { this.sacredWeapon = 0 }
+        if (magic && round === 1) { this.sacredWeapon = this.chaBonus }
+        else if (magic && this.healthCheck()) { this.healingMagic() }
+        else { this.attackAction() }
       }
+    },
+    attackAction() {
+      for (var i = 0; i < this.attacks; i++) { this.makeAttack() }
     },
     makeAttack() {
       this.records.attackAttempts++;
@@ -595,7 +604,8 @@
       if (roll === 20) { return `crit` }
       else if (roll === 1) { return `miss` }
       else {
-        let result = roll + this.meleeBonus + this.profBonus + this.sacredWeapon;
+        let result = roll + this.meleeBonus + this.profBonus;
+        if (magic) { result += this.sacredWeapon }
         if (result < (marquis.AC + marquis.profBonus)) { return marquis.defensiveDuelist(result) }
         if (result >= marquis.AC) { return `hit` }
         else { return `miss` }
@@ -631,14 +641,32 @@
     },
     smiteAttackDMG(slot) {
       var smiteDamage = 0;
-      if (slot === 1) { smiteDamage = rollD(8) + rollD(8) }
-      else if (slot === 2) { smiteDamage = rollD(8) + rollD(8) + rollD(8) }
+      for (var i = 0; i < slot; i++) { smiteDamage += rollD(8) }
       opponent.records.slotsSpent++;
       return smiteDamage;
     },
-    layHands() {
-      this.curHP += this.curHealHP;
-      this.curHealHP = 0;
+    healthCheck() {
+      return (this.curHealHP && (this.curHP <= (this.maxHP - this.healTrigger)) && (this.curLayHands || this.cur2ndSlots || this.cur1stSlots));
+    },
+    healingMagic() {
+      if (this.curHealHP) {
+        this.curHP += this.curHealHP;
+        this.curHealHP = 0;
+      }
+      else if (this.cur2ndSlots) {
+        this.cur2ndSlots--;
+        this.curHP += this.cureWounds(2);
+      }
+      else if (this.cur1stSlots) {
+        this.cur1stSlots--;
+        this.curHP += this.cureWounds(1);
+      }
+    },
+    cureWounds(slot) {
+      var cureWoundsHP = 0;
+      for (var i = 0; i < slot; i++) { cureWoundsHP += rollD(8) }
+      cureWoundsHP += this.castingBonus;
+      return cureWoundsHP;
     }
   }
 
@@ -881,10 +909,6 @@
     var opponentInit = rollD(20) + opponent.initBonus;
     if (marquisInit >= opponentInit) { return `marquis` }
     else { return `opponent` }
-  }
-
-  function attackAction(character) {
-    for (var i = 0; i < character.attacks; i++) { character.makeAttack() }
   }
 
   function mainDMG(character, type) {
