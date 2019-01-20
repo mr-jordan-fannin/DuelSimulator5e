@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Duel Simulator</title>
+  <meta charset="utf-8">
+</head>
+
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    color: white;
+    font-family: Arial;
+    font-size: 2vh;
+  }
+  main {
+    height: 100vh;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 100vw;
+  }
+  .quadrant {
+    height: 45vh;
+    width: 50vw;
+    overflow: auto;
+    position: absolute;
+  }
+  .card {
+    padding: 3% 3% 0 3%;
+  }
+  #marquisSettings {
+    background-color: firebrick;
+    top: 0;
+    left: 0;
+  }
+  #opponentSettings {
+    background-color: darkblue;
+    top: 0;
+    left: 50vw;
+  }
+  #duelSettings {
+    background-color: forestgreen;
+    top: 45vh;
+    left: 0;
+  }
+  #duelReport {
+    background-color: indigo;
+    top: 45vh;
+    left: 50vw;
+  }
+  #buttonRow {
+    background-color: #444;
+    top: 90vh;
+    left: 0;
+    height: 10vh;
+    width: 100vw;
+    position: absolute;
+    text-align: center;
+  }
+  #runDuelsButton {
+    height: 60%;
+    left: 25%;
+    position: absolute;
+    top: 20%;
+    width: 50%;
+  }
+  #buttonTitle {
+    font-size: 2vh;
+  }
+  .title {
+    font-size: 3vh;
+    margin-bottom: 1vh;
+    text-align: center;
+  }
+  .subTitle {
+    font-weight: bold;
+    text-align: center;
+  }
+  legend {
+    margin: 0 auto;
+    font-weight: bold;
+  }
+  table {
+    font-size: 1.5vh;
+    width: 100%;
+  }
+  table, td {
+    border: 1px solid orange;
+    border-collapse: collapse;
+    padding: 3px;
+  }
+  td {
+    text-align: center;
+  }
+  .rowHeader {
+    text-align: right;
+  }
+  .preferences {
+    display: flex;
+    margin: auto;
+    text-align: left;
+    width: 80%;
+  }
+  .prefColumn {
+    width: 50%;
+  }
+  input[type="checkbox"] {
+    vertical-align: middle;
+  }
+  input {
+    margin-left: 10%;
+    text-align: center;
+    width: 50px;
+  }
+  .largeNumber {
+    width: 100px;
+  }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+</style>
+
+<body>
+  <main>
+
+    <div id="duelSettings" class="quadrant">
+      <div class="card">
+        <div class="title">Duel Settings</div>
+        <div><input type="number" id="duelCount" class="largeNumber" onclick="setOptions()" min="1" max="10000000" /> Duel Simulation Iterations</div>
+        <div><input type="checkbox" class="checkBox" id="magicAllowed" onclick="setOptions()" checked /> Allow Magic</div>
+        <div><input type="checkbox" class="checkBox" id="disarmEndsDuel" onclick="setOptions()" checked /> Disarm Ends Duel</div>
+      </div>
+    </div>
+
+    <div id="duelReport" class="quadrant">
+      <div class="card">
+        <div class="title">Duel Report</div>
+        <table>
+          <tr>
+            <td>Total Duels: <span id="TotalDuels"></span></td>
+            <td colspan="2">Avg Rounds: <span id="AvgRounds"></span></td>
+          </tr>
+          <tr>
+            <td style="width: 50%;"></td>
+            <td style="width: 25%;">Marquis</td>
+            <td style="width: 25%;">Opponent</td>
+          </tr>
+          <tr>
+            <td class="rowHeader">Victory Chances</td>
+            <td class="center"><span id="VictoryChances"></span></td>
+            <td><span id="DefeatChances"></span></td>
+          </tr>
+          <tr>
+            <td class="rowHeader">Attack Chances</td>
+            <td><span id="MarquisAttackChance"></span></td>
+            <td><span id="OpponentAttackChance"></span></td>
+          </tr>
+          <tr>
+            <td class="rowHeader">Avg Atk Attempts</td>
+            <td><span id="AvgMarquisAttackAttemps"></span></td>
+            <td><span id="AvgOpponentAttackAttempts"></span></td>
+          </tr>
+          <tr>
+            <td class="rowHeader">Avg Atk Successes</td>
+            <td><span id="AvgMarquisAttackSuccesses"></span></td>
+            <td><span id="AvgOpponentAttackSuccesses"></span></td>
+          </tr>
+          <tr>
+            <td class="rowHeader">Avg Atk Damage</td>
+            <td><span id="AvgMarquisAttackDamage"></span></td>
+            <td><span id="AvgOpponentAttackDamage"></span></td>
+          </tr>
+          <tr>
+            <td class="rowHeader">Avg Dmg Taken</td>
+            <td><span id="AvgMarquisDmgTaken"></span></td>
+            <td><span id="AvgOpponentDmgTaken"></span></td>
+          </tr>
+          <tr>
+            <td class="rowHeader">Disarm Chances</td>
+            <td><span id="DisarmChance"></span></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="rowHeader">Disarm Frequency</td>
+            <td><span id="DisarmFrequency"></span></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="rowHeader">Smite Frequency</td>
+            <td></td>
+            <td><span id="SmiteFrequency"></span></td>
+          </tr>
+          <tr>
+            <td class="rowHeader">Avg Special Moves</td>
+            <td><span id="AvgMarquisSpecials"></span></td>
+            <td><span id="AvgOpponentSpecials"></span></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div id="marquisSettings" class="quadrant">
+      <div class="card">
+        <div class="title">Marquis</div>
+        <div style="text-align: center;">
+          <fieldset class="preferences">
+            <legend>Stats</legend>
+            <div class="prefColumn">
+              <div><input type="number" id="marquisInitiativeBonus" onclick="setOptions()" min="0" max="20" /> Initiative</div>
+              <div><input type="number" id="marquisAttacks" onclick="setOptions()" min="1" max="4" /> Attacks</div>
+              <div><input type="number" id="marquisProficiencyBonus" onclick="setOptions()" min="2" max="6" /> Proficiency</div>
+              <div><input type="number" id="marquisMeleeBonus" onclick="setOptions()" min="0" max="5" /> Melee Bonus</div>
+              <div><input type="number" id="marquisWeaponDamage" onclick="setOptions()" min="1" max="12" /> Weapon Die</div>
+              <div><input type="number" id="marquisSneakDice" onclick="setOptions()" min="1" max="8" /> Sneak Dice</div>
+            </div>
+            <div class="prefColumn">
+              <div><input type="number" id="marquisArmorClass" onclick="setOptions()" min="10" max="30" /> Armor Class</div>
+              <div><input type="number" id="marquisHitPoints" onclick="setOptions()" min="1" max="1000" /> Hit Points</div>
+              <div><input type="number" id="marquisHealTrigger" onclick="setOptions()" min="0" max="1000" /> Heal Trigger</div>
+              <div><input type="number" id="marquisSaveDC" onclick="setOptions()" min="8" max="30" value="14" /> Save DC</div>
+              <div><input type="checkbox" id="marquisRakishAudacity" onclick="setOptions()"/> Rakish Audacity</div>
+            </div>
+          </fieldset>
+        </div>
+        <br>
+        <div style="text-align: center;">
+          <fieldset class="preferences">
+            <legend>Tactics</legend>
+            <div class="prefColumn">
+              <div class="subTitle">Action</div>
+              <div><input type="radio" name="maneuverPref" id="marquisBasicAttack" onclick="setOptions()" checked /> Basic Attack</div>
+              <div><input type="checkbox" id="marquisSecondWind" onclick="setOptions()" /> Second Wind</div>
+              <div><input type="radio" name="maneuverPref" id="marquisDisarm" onclick="setOptions()" /> Disarm</div>
+              <div><input type="radio" name="maneuverPref" id="marquisFeint" onclick="setOptions()" /> Feint</div>
+            </div>
+            <div class="prefColumn">
+              <div class="subTitle">Reaction</div>
+              <div><input type="radio" name="maneuverPref" id="marquisBasicDefPref" onclick="setOptions()" /> Basic Defense</div>
+              <div><input type="radio" name="maneuverPref" id="marquisParry" onclick="setOptions()" /> Parry</div>
+              <div><input type="radio" name="maneuverPref" id="marquisRiposte" onclick="setOptions()" /> Riposte</div>
+              <div><input type="radio" name="maneuverPref" id="marquisBasicDefense" onclick="setOptions()" /> Defense</div>
+            </div>
+          </fieldset>
+        </div>
+      </div>
+    </div>
+
+    <div id="opponentSettings" class="quadrant">
+      <div class="card">
+        <div class="title">Opponent</div>
+        <div><input type="number" id="opponentInitiativeBonus" onclick="setOptions()" min="0" max="20" value="3" /> Initiative</div>
+        <div><input type="number" id="opponentAttacks" onclick="setOptions()" min="1" max="4" value="2" /> Attacks</div>
+        <div><input type="number" id="opponentProficiencyBonus" onclick="setOptions()" min="2" max="6" value="3" /> Proficiency</div>
+        <div><input type="number" id="opponentMeleeBonus" onclick="setOptions()" min="0" max="5" value="3" /> Melee Bonus</div>
+        <div><input type="number" id="opponentWeaponDamage" onclick="setOptions()" min="1" max="12" value="8" /> Weapon Die</div>
+        <div><input type="number" id="opponentArmorClass" onclick="setOptions()" min="10" max="30" value="20" /> Armor Class</div>
+        <div><input type="number" id="opponentHitPoints" onclick="setOptions()" min="1" max="1000" value="60" /> Hit Points</div>
+        <div><input type="number" id="opponentHealTrigger" onclick="setOptions()" min="0" max="1000" value="35" /> Heal Trigger</div>
+        <br>
+        <div class="subTitle">Magic</div>
+        <div><input type="number" id="opponentSaveDC" onclick="setOptions()" min="8" max="30" value="14" /> Save DC</div>
+        <div><input type="number" id="opponentCastingBonus" onclick="setOptions()" min="0" max="5" value="3" /> Casting Bonus</div>
+        <div><input type="number" id="opponent1stLvlSlots" onclick="setOptions()" min="0" max="4" value="4" /> Level 1 Slots</div>
+        <div><input type="number" id="opponent2ndLvlSlots" onclick="setOptions()" min="0" max="4" value="3" /> Level 2 Slots</div>
+      </div>
+    </div>
+
+    <div id="buttonRow">
+        <button id="runDuelsButton" onclick="main()">
+          <div id="buttonTitle">
+            Run Simulated Duels
+          </div>
+        </button>
+    </div>
+
+  </main>
+</body>
+
+<script>
+
+
+
+  // (Rogue 2 / Fighter 5) vs (Paladin 7)
+  // TODO: 
+  // Add Spells to opponent. Start with Cure Wounds! +1d8HP/slot!
+  // Add Inspiration to both?
+
+
+  // GLOBAL VARIABLES
+  var combat = true;
+  var initWinner = ``;
+  var round = 0;
+  var totalRounds = 1;
+  var duels = 100000;
+  var magic = true;
+  var disarmEndsDuel = true;
+
+  // MARQUIS OBJECT
+
+  const marquis = {
+    action: 1,
+    bonus: 1,
+    reaction: 1,
+    maneuver: 1,
+    attacks: 2,
+    advantage: false,
+    profBonus: 3,
+    meleeBonus: 3,
+    weaponDmg: 8,
+    dmgBonus: 5,
+    AC: 18,
+    initBonus: 3,
+    saveDC: 14,
+    sneakDice: 1,
+    feintStatus: false,
+    riposteStatus: false,
+    prefs: {
+      basicAttack: true,
+      disarm: false,
+      feint: false,
+      parry: false,
+      riposte: false,
+      secondWind: false,
+      defense: false
+    },
+    curHP: 60,
+    maxHP: 60,
+    healTrigger: 30,
+    secondWindRemaining: true,
+    curSuperiorityDice: 4,
+    maxSuperiorityDice: 4,
+    rakishAudacity: false,
+    records: {
+      maneuverAttempts: 0,
+      attackAttempts: 0,
+      attackSuccesses: 0,
+      attackDamage: 0,
+      disarmAttempts: 0,
+      disarmSuccesses: 0,
+      dmgTaken: 0,
+      wins: 0
+    },
+    tactics() {
+      if (this.action) {
+        if (round === 1) {
+          attackAction(this); // Normal Action
+          attackAction(this); // Action Surge
+        }
+        else if (this.prefs.secondWind && this.secondWindRemaining && (this.curHP <= (this.maxHP - this.healTrigger))) { this.secondWind() }
+        else { attackAction(this) }
+        this.action = 0;
+      }
+    },
+    makeAttack() {
+      this.maneuver = 1;
+      this.records.attackAttempts++;
+      // START Feint Attack Option
+      if (this.prefs.feint) { this.feintAttack() }
+      // END Feint Attack Option
+      var attack = this.attackRoll();
+      var damage = 0;
+      if (attack === `crit` || attack === `hit`) {
+        this.records.attackSuccesses++;
+        damage = mainDMG(this, attack) + this.dmgBonus;
+      }
+      dealDMG(opponent, damage);
+      marquis.records.attackDamage += damage;
+      opponent.records.dmgTaken += damage;
+      if (this.feintStatus) { this.endFeint() }
+    },
+    attackRoll() {
+      let roll = 0;
+      if (this.advantage) { roll = advantageRoll() }
+      else { roll = rollD(20) }
+      if (roll === 20) { return `crit` }
+      else if (roll === 1) { return `miss` }
+      else {
+        let result = roll + this.meleeBonus + this.profBonus;
+        if (result >= opponent.AC) { return `hit` }
+        else { return `miss` }
+      }
+    },
+    hitDMG() {
+      var hitDamage = rollD(this.weaponDmg);
+      // START Disarm Attack Option (Hit)
+      if (this.prefs.disarm || this.prefs.feintStatus) {
+        hitDamage += this.superiorityDie();
+        if (this.prefs.disarm) { this.disarmManeuver() }
+      }
+      // END Disarm Attack Option (Hit)
+      if (this.advantage || this.rakishAudacity) { hitDamage += this.sneakDMG() }
+      return hitDamage;
+    },
+    critDMG() {
+      var critDamage = this.hitDMG() + this.hitDMG();
+      // START Disarm Attack Option (Crit)
+      if (this.prefs.disarm || this.feintStatus) {
+        critDamage += this.superiorityDie() + this.superiorityDie();
+        if (this.prefs.disarm) { this.disarmManeuver() }
+      }
+      // END Disarm Attack Option (Crit)
+      if (this.advantage || this.rakishAudacity) { critDamage += this.sneakDMG() + this.sneakDMG() }
+      return critDamage;
+    },
+    sneakDMG() {
+      var sneakDamage = 0;
+      for (var i = 0; i < this.sneakDice; i++) { sneakDamage += rollD(6) }
+      return sneakDamage;
+    },
+    superiorityDie() {
+      return rollD(8);
+    },
+    disarmManeuver() {
+      if (this.maneuver && this.curSuperiorityDice && !this.riposteStatus) {
+        this.maneuver = 0;
+        this.curSuperiorityDice--;
+        this.records.maneuverAttempts++;
+        this.records.disarmAttempts++;
+        var opponentSave = rollD(20) + opponent.strengthSave;
+        if (magic) { opponentSave += opponent.auraProtection }
+        if (opponentSave < marquis.saveDC) {
+          this.records.disarmSuccesses++;
+          if (disarmEndsDuel) {
+            opponent.curHP = 0;
+          }
+        }
+      }
+    },
+    feintAttack() {
+      if (this.bonus && this.maneuver && this.curSuperiorityDice && !this.riposteStatus) {
+        this.bonus = 0;
+        this.maneuver = 0;
+        this.curSuperiorityDice--;
+        this.records.maneuverAttempts++;
+        this.records.feintAttempts++;
+        this.advantage = true;
+        this.feintStatus = true;
+      }
+    },
+    endFeint() {
+      this.advantage = false;
+      this.feintStatus = false;
+    },
+    parry(damage) {
+      var parryReduction = 0;
+      if (this.reaction && this.curSuperiorityDice) {
+        this.reaction = 0;
+        this.curSuperiorityDice--;
+        this.records.maneuverAttempts++;
+        parryReduction = this.superiorityDie() + marquis.meleeBonus;
+      }
+      var newDamage = damage - parryReduction;
+      if (newDamage < 0) { newDamage = 0 }
+      return newDamage;
+    },
+    riposte() {
+      if (this.reaction && this.curSuperiorityDice) {
+        this.reaction = 0;
+        this.curSuperiorityDice--;
+        this.records.maneuverAttempts++;
+        this.riposteStatus = true;
+        this.makeAttack();
+        this.maneuver = 0;
+        this.riposteStatus = false;
+      }
+    },
+    defensiveDuelist(result) {
+      var defensiveBonus = 0;
+      if (this.reaction) {
+        this.reaction = 0;
+        defensiveBonus = this.profBonus;
+      }
+      if (result < (marquis.AC + defensiveBonus)) { return `miss` }
+      else { return `hit` }
+    },
+    secondWind() {
+      this.curHP += rollD(10) + 5;
+      this.secondWindRemaining = false;
+    }
+  }
+
+
+  // OPPONENT OBJECT
+
+  const opponent = {
+    action: 1,
+    bonus: 1,
+    reaction: 1,
+    attacks: 2,
+    profBonus: 3,
+    chaBonus: 3,
+    advantage: false,
+    meleeBonus: 3,
+    castingBonus: 3,
+    AC: 20,
+    weaponDmg: 8,
+    dmgBonus: 4,
+    initBonus: 0,
+    saveDC: 15,
+    strengthSave: 3,
+    auraProtection: 3,
+    sacredWeapon: 0,
+    curHP: 70,
+    maxHP: 70,
+    curHealHP: 35,
+    maxHealHP: 35,
+    healTrigger: 35,
+    cur1stSlots: 4,
+    max1stSlots: 4,
+    cur2ndSlots: 3,
+    max2ndSlots: 3,
+    curChannel: 1,
+    maxChannel: 1,
+    prefs: {
+      bless: false,
+      divineFavor: false,
+      heroism: false,
+      shieldOfFaith: false,
+      searingSmite: false,
+      thunderousSmite: false,
+      wrathfulSmite: false,
+      command: false,
+      cureWounds: false,
+      magicWeapon: false
+    },
+    records: {
+      slotsSpent: 0,
+      attackAttempts: 0,
+      attackSuccesses: 0,
+      attackDamage: 0,
+      smiteSuccesses: 0,
+      dmgTaken: 0,
+      wins: 0
+    },
+    tactics() {
+      if (this.action) {
+        if (round > 10) { this.sacredWeapon = 0 }
+        if (round === 1 && magic) { this.sacredWeapon = this.chaBonus }
+        else if (magic && this.curHealHP && (this.curHP <= (this.maxHP - this.healTrigger))) { this.layHands() }
+        else { attackAction(this) }
+      }
+    },
+    makeAttack() {
+      this.records.attackAttempts++;
+      var attack = this.attackRoll();
+      var damage = 0;
+      if (attack === `crit` || attack === `hit`) {
+        this.records.attackSuccesses++;
+        if (magic && (this.cur1stSlots || this.cur2ndSlots)) { this.records.smiteSuccesses++ }
+        damage = mainDMG(this, attack) + this.dmgBonus;
+        if (marquis.prefs.parry) { damage = marquis.parry(damage) }
+      }
+      if (attack === `miss` && marquis.prefs.riposte) { marquis.riposte() }
+      dealDMG(marquis, damage);
+      opponent.records.attackDamage += damage;
+      marquis.records.dmgTaken += damage;
+    },
+    attackRoll() {
+      let roll = 0;
+      if (this.advantage) { roll = advantageRoll() }
+      else { roll = rollD(20) }
+      if (roll === 20) { return `crit` }
+      else if (roll === 1) { return `miss` }
+      else {
+        let result = roll + this.meleeBonus + this.profBonus + this.sacredWeapon;
+        if (result < (marquis.AC + marquis.profBonus)) { return marquis.defensiveDuelist(result) }
+        if (result >= marquis.AC) { return `hit` }
+        else { return `miss` }
+      }
+    },
+    hitDMG() {
+      var hitDamage = rollD(this.weaponDmg);
+      if (magic) {
+        if (this.cur2ndSlots) {
+          this.cur2ndSlots--;
+          hitDamage += this.smiteAttackDMG(2);
+        }
+        else if (this.cur1stSlots) {
+          this.cur1stSlots--;
+          hitDamage += this.smiteAttackDMG(1);
+        }
+      }
+      return hitDamage;
+    },
+    critDMG() {
+      var critDamage = rollD(this.weaponDmg) + rollD(this.weaponDmg);
+      if (magic) {
+        if (this.cur2ndSlots) {
+          this.cur2ndSlots--;
+          critDamage += this.smiteAttackDMG(2) + this.smiteAttackDMG(2);
+        }
+        else if (this.cur1stSlots) {
+          this.cur1stSlots--;
+          critDamage += this.smiteAttackDMG(1) + this.smiteAttackDMG(1);
+        }
+      }
+      return critDamage;
+    },
+    smiteAttackDMG(slot) {
+      var smiteDamage = 0;
+      if (slot === 1) { smiteDamage = rollD(8) + rollD(8) }
+      else if (slot === 2) { smiteDamage = rollD(8) + rollD(8) + rollD(8) }
+      opponent.records.slotsSpent++;
+      return smiteDamage;
+    },
+    layHands() {
+      this.curHP += this.curHealHP;
+      this.curHealHP = 0;
+    }
+  }
+
+
+  function setOptions() {
+    duels = document.getElementById("duelCount").value;
+    magic = document.getElementById("magicAllowed").checked;
+    document.getElementById("opponentHealTrigger").disabled = !magic;
+    document.getElementById("opponentSaveDC").disabled = !magic;
+    document.getElementById("opponentCastingBonus").disabled = !magic;
+    document.getElementById("opponent1stLvlSlots").disabled = !magic;
+    document.getElementById("opponent2ndLvlSlots").disabled = !magic;
+
+    marquis.initBonus = document.getElementById("marquisInitiativeBonus").value;
+    marquis.attacks = document.getElementById("marquisAttacks").value;
+    marquis.profBonus = document.getElementById("marquisProficiencyBonus").value;
+    marquis.meleeBonus = document.getElementById("marquisMeleeBonus").value;
+    marquis.weaponDmg = document.getElementById("marquisWeaponDamage").value;
+    marquis.AC = document.getElementById("marquisArmorClass").value;
+    marquis.maxHP = document.getElementById("marquisHitPoints").value;
+    marquis.healTrigger = document.getElementById("marquisHealTrigger").value;
+    marquis.saveDC = document.getElementById("marquisSaveDC").value;
+
+    marquis.prefs.secondWind = document.getElementById("marquisSecondWind").checked;
+    marquis.prefs.basicAttack = document.getElementById("marquisBasicAttack").checked;
+    marquis.prefs.disarm = document.getElementById("marquisDisarm").checked;
+    marquis.prefs.feint = document.getElementById("marquisFeint").checked;
+    marquis.prefs.parry = document.getElementById("marquisParry").checked;
+    marquis.prefs.riposte = document.getElementById("marquisRiposte").checked;
+    marquis.prefs.defense = document.getElementById("marquisBasicDefense").checked;
+    if (marquis.prefs.defense) {
+      marquis.prefs.parry = true;
+      marquis.prefs.riposte = true;
+    }
+
+    opponent.initBonus = document.getElementById("opponentInitiativeBonus").value;
+    opponent.attacks = document.getElementById("opponentAttacks").value;
+    opponent.profBonus = document.getElementById("opponentProficiencyBonus").value;
+    opponent.meleeBonus = document.getElementById("opponentMeleeBonus").value;
+    opponent.weaponDmg = document.getElementById("opponentWeaponDamage").value;
+    opponent.AC = document.getElementById("opponentArmorClass").value;
+    opponent.maxHP = document.getElementById("opponentHitPoints").value;
+    opponent.healTrigger = document.getElementById("opponentHealTrigger").value;
+    opponent.castingBonus = document.getElementById("opponentCastingBonus").value;
+    opponent.saveDC = document.getElementById("opponentSaveDC").value;
+    opponent.max1stSlots = document.getElementById("opponent1stLvlSlots").value;
+    opponent.max2ndSlots = document.getElementById("opponent2ndLvlSlots").value;
+  }
+
+
+  // CORE FUNCTIONS
+
+  function main() {
+    resetGlobals();
+    clearReport();
+    setOptions();
+    console.log("Magic? ", magic)
+    for (var i = 0; i < duels; i++) {
+      resetCombat();
+      combatLoop();
+    }
+    report();
+  }
+
+  function resetGlobals() {
+    combat = true;
+    initWinner = ``;
+    round = 0;
+    totalRounds = 1;
+    
+    opponent.records.wins = 0;
+    opponent.records.dmgTaken = 0;
+    opponent.records.attackAttempts = 0;
+    opponent.records.attackSuccesses = 0;
+    opponent.records.attackDamage = 0;
+    opponent.records.smiteSuccesses = 0;
+    opponent.records.slotsSpent = 0;
+    
+    marquis.records.wins = 0;
+    marquis.records.dmgTaken = 0;
+    marquis.records.attackAttempts = 0;
+    marquis.records.attackSuccesses = 0;
+    marquis.records.attackDamage = 0;
+    marquis.records.disarmAttempts = 0;
+    marquis.records.disarmSuccesses = 0;
+    marquis.records.maneuverAttempts = 0;
+  }
+
+  function clearReport() {
+    var reportFields = [
+      "TotalDuels",
+      "VictoryChances",
+      "DefeatChances",
+      "AvgRounds",
+      "OpponentAttackChance",
+      "AvgOpponentAttackAttempts",
+      "AvgOpponentAttackSuccesses",
+      "AvgOpponentAttackDamage",
+      "AvgOpponentDmgTaken",
+      "SmiteFrequency",
+      "AvgOpponentSpecials",
+      "MarquisAttackChance",
+      "AvgMarquisAttackAttemps",
+      "AvgMarquisAttackSuccesses",
+      "AvgMarquisAttackDamage",
+      "AvgMarquisDmgTaken",
+      "DisarmChance",
+      "DisarmFrequency",
+      "AvgMarquisSpecials"
+    ];
+
+    for (i in reportFields) { document.getElementById(reportFields[i]).textContent = `` }
+  }
+
+  function resetCombat() {
+    combat = true;
+    initWinner = rollInitiative();
+    round = 1;
+
+    marquis.action = 1;
+    marquis.bonus = 1;
+    marquis.reaction = 1;
+    marquis.curHP = marquis.maxHP;
+    marquis.curSuperiorityDice = marquis.maxSuperiorityDice;
+
+    opponent.action = 1;
+    opponent.bonus = 1;
+    opponent.reaction = 1;
+    opponent.curHP = opponent.maxHP;
+    opponent.curHealHP = opponent.maxHealHP;
+    opponent.cur1stSlots = opponent.max1stSlots;
+    opponent.cur2ndSlots = opponent.max2ndSlots;
+    opponent.curChannel = opponent.maxChannel;
+  }
+
+  function combatLoop() {
+    while (combat) {
+      if (initWinner === `marquis`) { combat = combatTurn(marquis, opponent) }
+      else { combat = combatTurn(opponent, marquis) }
+      if (combat) { newRound() }
+      else { break }
+    }
+  }
+
+  function combatTurn(first, second) {
+    first.tactics();
+    if (second.curHP <= 0) {
+      first.records.wins++;
+      return false;
+    } else {
+      second.tactics();
+      if (first.curHP <= 0) {
+        second.records.wins++;
+        return false;
+      } else { return true }
+    }
+  }
+
+  function newRound() {
+    round++;
+    totalRounds++;
+    marquis.action = 1;
+    marquis.bonus = 1;
+    marquis.reaction = 1;
+    opponent.action = 1;
+    opponent.bonus = 1;
+    opponent.reaction = 1;
+  }
+
+  function rollD(type) {
+    return Math.floor(Math.random() * type) + 1;
+  }
+
+  function advantageRoll() {
+    var roll1 = rollD(20);
+    var roll2 = rollD(20);
+    return (roll1 >= roll2 ? roll1 : roll2);
+  }
+
+  function rollInitiative() {
+    var marquisInit = rollD(20) + marquis.initBonus;
+    var opponentInit = rollD(20) + opponent.initBonus;
+    if (marquisInit >= opponentInit) { return `marquis` }
+    else { return `opponent` }
+  }
+
+  function attackAction(character) {
+    for (var i = 0; i < character.attacks; i++) { character.makeAttack() }
+  }
+
+  function mainDMG(character, type) {
+    if (type === `hit`) { return character.hitDMG() }
+    else if (type === `crit`) { return character.critDMG() }
+  }
+
+  function dealDMG(target, dmg) {
+    target.curHP -= dmg;
+  }
+
+  function report() {
+    var avgRounds = (totalRounds / duels).toFixed(1);
+    var victoryChances = ((marquis.records.wins / duels)*100).toFixed(1);
+    var defeatChances = (100 - victoryChances).toFixed(1);
+
+    var opponentAttackChance = ((opponent.records.attackSuccesses / opponent.records.attackAttempts)*100).toFixed(1);
+    var avgOpponentAttackAttempts = (opponent.records.attackAttempts / duels).toFixed(1);
+    var avgOpponentAttackSuccesses = (opponent.records.attackSuccesses / duels).toFixed(1);
+    var avgOpponentAttackDamage = (opponent.records.attackDamage / opponent.records.attackSuccesses).toFixed(1);
+    var avgOpponentDmgTaken = (opponent.records.dmgTaken / duels).toFixed(0);
+    var smiteFrequency = ((opponent.records.smiteSuccesses / opponent.records.attackAttempts)*100).toFixed(1);
+    var avgOpponentSpecials = (opponent.records.slotsSpent / duels).toFixed(1);
+
+    var marquisAttackChance = ((marquis.records.attackSuccesses / marquis.records.attackAttempts)*100).toFixed(1);
+    var avgMarquisAttackAttempts = (marquis.records.attackAttempts / duels).toFixed(1);
+    var avgMarquisAttackSuccesses = (marquis.records.attackSuccesses / duels).toFixed(1);
+    var avgMarquisAttackDamage = (marquis.records.attackDamage / marquis.records.attackSuccesses).toFixed(1);
+    var avgMarquisDmgTaken = (marquis.records.dmgTaken / duels).toFixed(0);
+    var disarmChance = ((marquis.records.disarmSuccesses / marquis.records.disarmAttempts)*100).toFixed(1);
+    var disarmFrequency = ((marquis.records.disarmAttempts / marquis.records.attackAttempts)*100).toFixed(1);
+    var avgMarquisSpecials = (marquis.records.maneuverAttempts / duels).toFixed(1);
+
+    document.getElementById("TotalDuels").textContent = duels;
+    document.getElementById("VictoryChances").textContent = `${victoryChances}%`;
+    document.getElementById("DefeatChances").textContent = `${defeatChances}%`;
+    document.getElementById("AvgRounds").textContent = avgRounds;
+
+    document.getElementById("OpponentAttackChance").textContent = `${opponentAttackChance}%`;
+    document.getElementById("AvgOpponentAttackAttempts").textContent = avgOpponentAttackAttempts;
+    document.getElementById("AvgOpponentAttackSuccesses").textContent = avgOpponentAttackSuccesses;
+    document.getElementById("AvgOpponentAttackDamage").textContent = avgOpponentAttackDamage;
+    document.getElementById("AvgOpponentDmgTaken").textContent = avgOpponentDmgTaken;
+    if (magic) {
+      document.getElementById("SmiteFrequency").textContent = `${smiteFrequency}%`;
+    }
+    document.getElementById("AvgOpponentSpecials").textContent = avgOpponentSpecials;
+    
+    document.getElementById("MarquisAttackChance").textContent = `${marquisAttackChance}%`;
+    document.getElementById("AvgMarquisAttackAttemps").textContent = avgMarquisAttackAttempts;
+    document.getElementById("AvgMarquisAttackSuccesses").textContent = avgMarquisAttackSuccesses;
+    document.getElementById("AvgMarquisAttackDamage").textContent = avgMarquisAttackDamage;
+    document.getElementById("AvgMarquisDmgTaken").textContent = avgMarquisDmgTaken;
+    if (marquis.prefs.disarm) {
+      document.getElementById("DisarmChance").textContent = `${disarmChance}%`;
+      document.getElementById("DisarmFrequency").textContent = `${disarmFrequency}%`;
+    }
+    document.getElementById("AvgMarquisSpecials").textContent = avgMarquisSpecials;
+  }
+
+
+</script>
+
+</html>
