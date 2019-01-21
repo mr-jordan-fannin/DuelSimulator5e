@@ -265,13 +265,13 @@
               <div><input type="number" id="opponentAttacks" onclick="setOptions()" min="1" max="4" /> Attacks</div>
               <div><input type="number" id="opponentProficiency" onclick="setOptions()" min="2" max="6" /> Proficiency</div>
               <div><input type="number" id="opponentStrBonus" onclick="setOptions()" min="0" max="5" /> Str Bonus</div>
+              <div><input type="number" id="opponentChaBonus" onclick="setOptions()" min="0" max="5" /> Cha Bonus</div>
               <div><input type="number" id="opponentWeaponDie" onclick="setOptions()" min="1" max="12" /> Weapon Die</div>
             </div>
             <div class="prefColumn">
               <div><input type="number" id="opponentArmorClass" onclick="setOptions()" min="10" max="30" /> Armor Class</div>
               <div><input type="number" id="opponentHitPoints" onclick="setOptions()" min="1" max="1000" /> Hit Points</div>
               <div><input type="number" id="opponentHealTrigger" onclick="setOptions()" min="0" max="1000" /> Heal Trigger</div>
-              <div><input type="number" id="opponentChaBonus" onclick="setOptions()" min="0" max="5" /> Casting Bonus</div>
               <div><input type="number" id="opponent1stLvlSlots" onclick="setOptions()" min="0" max="4" /> Level 1 Slots</div>
               <div><input type="number" id="opponent2ndLvlSlots" onclick="setOptions()" min="0" max="4" /> Level 2 Slots</div>
             </div>
@@ -315,9 +315,9 @@
   // GLOBAL VARIABLES
   var combat = true;
   var initWinner = ``;
-  var round = 0;
-  var totalRounds = 1;
-  var duels = 100000;
+  var round = parseInt(0);
+  var totalRounds = parseInt(1);
+  var duels = parseInt(100000);
   var magic = true;
   var disarmEndsDuel = true;
 
@@ -325,17 +325,17 @@
   // MARQUIS OBJECT
 
   const marquis = {
-    action: 1,
-    bonus: 1,
-    reaction: 1,
-    maneuver: 1,
-    attacks: 2,
+    action: parseInt(1),
+    bonus: parseInt(1),
+    reaction: parseInt(1),
+    maneuver: parseInt(1),
+    attacks: parseInt(2),
     advantage: false,
-    dexBonus: 3,
-    profBonus: 3,
-    weaponDie: 8,
-    AC: 18,
-    sneakDice: 1,
+    dexBonus: parseInt(3),
+    profBonus: parseInt(3),
+    weaponDie: parseInt(8),
+    AC: parseInt(18),
+    sneakDice: parseInt(1),
     feintStatus: false,
     riposteStatus: false,
     prefs: {
@@ -348,22 +348,22 @@
       riposte: false,
       defenseManeuvers: false
     },
-    curHP: 60,
-    maxHP: 60,
-    healTrigger: 30,
+    curHP: parseInt(60),
+    maxHP: parseInt(60),
+    healTrigger: parseInt(30),
     secondWindRemaining: true,
-    curSuperiorityDice: 4,
-    maxSuperiorityDice: 4,
+    curSuperiorityDice: parseInt(4),
+    maxSuperiorityDice: parseInt(4),
     rakishAudacity: false,
     records: {
-      maneuverAttempts: 0,
-      attackAttempts: 0,
-      attackSuccesses: 0,
-      attackDamage: 0,
-      disarmAttempts: 0,
-      disarmSuccesses: 0,
-      dmgTaken: 0,
-      wins: 0
+      maneuverAttempts: parseInt(0),
+      attackAttempts: parseInt(0),
+      attackSuccesses: parseInt(0),
+      attackDamage: parseInt(0),
+      disarmAttempts: parseInt(0),
+      disarmSuccesses: parseInt(0),
+      dmgTaken: parseInt(0),
+      wins: parseInt(0)
     },
     tactics() {
       if (this.action) {
@@ -389,7 +389,7 @@
       var damage = 0;
       if (attack === `crit` || attack === `hit`) {
         this.records.attackSuccesses++;
-        damage = this.mainDMG(attack) + this.dexBonus + 2;
+        damage = (this.mainDMG(attack) + this.dexBonus + 2);
       }
       this.dealDMG(damage);
       marquis.records.attackDamage += damage;
@@ -403,7 +403,7 @@
       if (roll === 20) { return `crit` }
       else if (roll === 1) { return `miss` }
       else {
-        let result = roll + this.dexBonus + this.profBonus;
+        let result = (roll + this.dexBonus + this.profBonus);
         if (result >= opponent.AC) { return `hit` }
         else { return `miss` }
       }
@@ -413,7 +413,8 @@
       else if (type === `crit`) { return this.critDMG() }
     },
     hitDMG() {
-      var hitDamage = rollD(this.weaponDie);
+      var hitDamage = 0;
+      hitDamage = rollD(this.weaponDie);
       // START Disarm Attack Option (Hit)
       if (this.prefs.disarm || this.feintStatus || this.riposteStatus) {
         hitDamage += this.superiorityDie();
@@ -424,18 +425,20 @@
       return hitDamage;
     },
     critDMG() {
-      var critDamage = this.hitDMG() + this.hitDMG();
+      var critDamage = 0;
+      critDamage = (rollD(this.weaponDie) + rollD(this.weaponDie));
       // START Disarm Attack Option (Crit)
       if (this.prefs.disarm || this.feintStatus || this.riposteStatus) {
-        critDamage += this.superiorityDie() + this.superiorityDie();
+        critDamage += (this.superiorityDie() + this.superiorityDie());
         if (this.prefs.disarm) { this.disarmManeuver() }
       }
       // END Disarm Attack Option (Crit)
-      if (this.advantage || this.rakishAudacity) { critDamage += this.sneakDMG() + this.sneakDMG() }
+      if (this.advantage || this.rakishAudacity) { critDamage += (this.sneakDMG() + this.sneakDMG()) }
       return critDamage;
     },
     dealDMG(damage) {
-      opponent.curHP -= damage;
+      opponent.curHP -= parseInt(damage);
+      opponent.records.dmgTaken += parseInt(damage);
     },
     sneakDMG() {
       var sneakDamage = 0;
@@ -456,9 +459,7 @@
           if (magic) { opponentSave += opponent.chaBonus }
           if (opponentSave < (8 + this.profBonus + this.dexBonus)) {
             this.records.disarmSuccesses++;
-            if (disarmEndsDuel) {
-              opponent.curHP = 0;
-            }
+            if (disarmEndsDuel) { opponent.curHP = 0 }
           }
         }
       }
@@ -484,9 +485,9 @@
         this.reaction = 0;
         this.curSuperiorityDice--;
         this.records.maneuverAttempts++;
-        parryReduction = this.superiorityDie() + marquis.dexBonus;
+        parryReduction = (this.superiorityDie() + marquis.dexBonus);
       }
-      var newDamage = damage - parryReduction;
+      var newDamage = (damage - parryReduction);
       if (newDamage < 0) { newDamage = 0 }
       return newDamage;
     },
@@ -514,7 +515,8 @@
       return (this.prefs.secondWind && this.secondWindRemaining && (this.curHP <= (this.maxHP - this.healTrigger)));
     },
     secondWind() {
-      this.curHP += rollD(10) + 5;
+      this.curHP += (rollD(10) + 5);
+      if (this.curHP > this.maxHP) { this.curHP = this.maxHP }
       this.secondWindRemaining = false;
     }
   }
@@ -523,29 +525,29 @@
   // OPPONENT OBJECT
 
   const opponent = {
-    action: 1,
-    bonus: 1,
-    reaction: 1,
-    attacks: 2,
-    profBonus: 3,
+    action: parseInt(1),
+    bonus: parseInt(1),
+    reaction: parseInt(1),
+    attacks: parseInt(2),
+    profBonus: parseInt(3),
     advantage: false,
-    strBonus: 3,
-    dexBonus: 0,
-    chaBonus: 3,
-    AC: 20,
-    weaponDie: 8,
-    sacredWeapon: 0,
-    curHP: 70,
-    maxHP: 70,
-    curLayHands: 35,
-    maxLayHands: 35,
-    healTrigger: 35,
-    cur1stSlots: 4,
-    max1stSlots: 4,
-    cur2ndSlots: 3,
-    max2ndSlots: 3,
-    curChannel: 1,
-    maxChannel: 1,
+    strBonus: parseInt(3),
+    dexBonus: parseInt(0),
+    chaBonus: parseInt(3),
+    AC: parseInt(20),
+    weaponDie: parseInt(8),
+    sacredWeapon: parseInt(0),
+    curHP: parseInt(70),
+    maxHP: parseInt(70),
+    curLayHands: parseInt(35),
+    maxLayHands: parseInt(35),
+    healTrigger: parseInt(35),
+    cur1stSlots: parseInt(4),
+    max1stSlots: parseInt(4),
+    cur2ndSlots: parseInt(3),
+    max2ndSlots: parseInt(3),
+    curChannel: parseInt(1),
+    maxChannel: parseInt(1),
     prefs: {
       basicAttack: true,
       smite: false,
@@ -562,19 +564,19 @@
       magicWeapon: false
     },
     records: {
-      slotsSpent: 0,
-      attackAttempts: 0,
-      attackSuccesses: 0,
-      attackDamage: 0,
-      smiteSuccesses: 0,
-      dmgTaken: 0,
-      wins: 0
+      slotsSpent: parseInt(0),
+      attackAttempts: parseInt(0),
+      attackSuccesses: parseInt(0),
+      attackDamage: parseInt(0),
+      smiteSuccesses: parseInt(0),
+      dmgTaken: parseInt(0),
+      wins: parseInt(0)
     },
     tactics() {
       if (this.action) {
         if (magic && round > 10) { this.sacredWeapon = 0 }
         if (magic && round === 1) { this.sacredWeapon = this.chaBonus }
-        else if (magic && this.prefs.healing && this.healthCheck()) { this.healingMagic() }
+        else if (magic && this.healthCheck()) { this.healingMagic() }
         else { this.attackAction() }
       }
     },
@@ -588,7 +590,7 @@
       if (attack === `crit` || attack === `hit`) {
         this.records.attackSuccesses++;
         if (magic && (this.cur1stSlots || this.cur2ndSlots)) { this.records.smiteSuccesses++ }
-        damage = this.mainDMG(attack) + this.strBonus;
+        damage = (this.mainDMG(attack) + this.strBonus);
         if (marquis.prefs.parry) { damage = marquis.parry(damage) }
       }
       if (attack === `miss` && marquis.prefs.riposte) { marquis.riposte() }
@@ -603,7 +605,7 @@
       if (roll === 20) { return `crit` }
       else if (roll === 1) { return `miss` }
       else {
-        let result = roll + this.strBonus + this.profBonus;
+        let result = (roll + this.strBonus + this.profBonus);
         if (magic) { result += this.sacredWeapon }
         if (result < (marquis.AC + marquis.profBonus)) { return marquis.defensiveDuelist(result) }
         if (result >= marquis.AC) { return `hit` }
@@ -615,7 +617,8 @@
       else if (type === `crit`) { return this.critDMG() }
     },
     hitDMG() {
-      var hitDamage = rollD(this.weaponDie);
+      var hitDamage = 0;
+      hitDamage = rollD(this.weaponDie);
       if (magic && this.prefs.smite) {
         if (this.cur2ndSlots) {
           this.cur2ndSlots--;
@@ -629,21 +632,23 @@
       return hitDamage;
     },
     critDMG() {
-      var critDamage = rollD(this.weaponDie) + rollD(this.weaponDie);
+      var critDamage = 0;
+      critDamage = (rollD(this.weaponDie) + rollD(this.weaponDie));
       if (magic && this.prefs.smite) {
         if (this.cur2ndSlots) {
           this.cur2ndSlots--;
-          critDamage += this.smiteAttackDMG(2) + this.smiteAttackDMG(2);
+          critDamage += (this.smiteAttackDMG(2) + this.smiteAttackDMG(2));
         }
         else if (this.cur1stSlots) {
           this.cur1stSlots--;
-          critDamage += this.smiteAttackDMG(1) + this.smiteAttackDMG(1);
+          critDamage += (this.smiteAttackDMG(1) + this.smiteAttackDMG(1));
         }
       }
       return critDamage;
     },
     dealDMG(damage) {
-      marquis.curHP -= damage;
+      marquis.curHP -= parseInt(damage);
+      marquis.records.dmgTaken += parseInt(damage);
     },
     smiteAttackDMG(slot) {
       var smiteDamage = 0;
@@ -652,7 +657,7 @@
       return smiteDamage;
     },
     healthCheck() {
-      return (this.curHealHP && (this.curHP <= (this.maxHP - this.healTrigger)) && (this.curLayHands || this.cur2ndSlots || this.cur1stSlots));
+      return (this.prefs.healing && this.curHealHP && (this.curHP <= (this.maxHP - this.healTrigger)) && (this.curLayHands || this.cur2ndSlots || this.cur1stSlots));
     },
     healingMagic() {
       if (this.curHealHP) {
@@ -667,6 +672,7 @@
         this.cur1stSlots--;
         this.curHP += this.cureWounds(1);
       }
+      if (this.curHP > this.maxHP) { this.curHP = this.maxHP }
     },
     cureWounds(slot) {
       var cureWoundsHP = 0;
@@ -693,6 +699,7 @@
     document.getElementById("marquisArmorClass").value = marquis.AC;
     document.getElementById("marquisHitPoints").value = marquis.maxHP;
     document.getElementById("marquisHealTrigger").value = marquis.healTrigger;
+    document.getElementById("marquisRakishAudacity").checked = marquis.rakishAudacity;
 
     document.getElementById("marquisSecondWind").checked = marquis.prefs.secondWind;
     document.getElementById("marquisBasicAttack").checked = marquis.prefs.basicAttack;
@@ -707,12 +714,12 @@
     document.getElementById("opponentAttacks").value = opponent.attacks;
     document.getElementById("opponentProficiency").value = opponent.profBonus;
     document.getElementById("opponentStrBonus").value = opponent.strBonus;
+    document.getElementById("opponentChaBonus").value = opponent.chaBonus;
     document.getElementById("opponentWeaponDie").value = opponent.weaponDie;
 
     document.getElementById("opponentArmorClass").value = opponent.AC;
     document.getElementById("opponentHitPoints").value = opponent.maxHP;
     document.getElementById("opponentHealTrigger").value = opponent.healTrigger;
-    document.getElementById("opponentChaBonus").value = opponent.chaBonus;
     document.getElementById("opponent1stLvlSlots").value = opponent.max1stSlots;
     document.getElementById("opponent2ndLvlSlots").value = opponent.max2ndSlots;
 
@@ -729,8 +736,6 @@
     disarmEndsDuel = document.getElementById("disarmEndsDuel").checked;
 
     document.getElementById("opponentHealTrigger").disabled = !magic;
-    document.getElementById("opponentSaveDC").disabled = !magic;
-    document.getElementById("opponentChaBonus").disabled = !magic;
     document.getElementById("opponent1stLvlSlots").disabled = !magic;
     document.getElementById("opponent2ndLvlSlots").disabled = !magic;
 
@@ -738,10 +743,12 @@
     marquis.profBonus = document.getElementById("marquisProficiency").value;
     marquis.dexBonus = document.getElementById("marquisDexBonus").value;
     marquis.weaponDie = document.getElementById("marquisWeaponDie").value;
+    marquis.sneakDie = document.getElementById("marquisSneakDice").value;
 
     marquis.AC = document.getElementById("marquisArmorClass").value;
     marquis.maxHP = document.getElementById("marquisHitPoints").value;
     marquis.healTrigger = document.getElementById("marquisHealTrigger").value;
+    marquis.rakishAudacity = document.getElementById("marquisRakishAudacity").checked;
 
     marquis.prefs.secondWind = document.getElementById("marquisSecondWind").checked;
     marquis.prefs.basicAttack = document.getElementById("marquisBasicAttack").checked;
@@ -760,12 +767,12 @@
     opponent.attacks = document.getElementById("opponentAttacks").value;
     opponent.profBonus = document.getElementById("opponentProficiency").value;
     opponent.strBonus = document.getElementById("opponentStrBonus").value;
+    opponent.chaBonus = document.getElementById("opponentChaBonus").value;
     opponent.weaponDie = document.getElementById("opponentWeaponDie").value;
-    opponent.AC = document.getElementById("opponentArmorClass").value;
 
+    opponent.AC = document.getElementById("opponentArmorClass").value;
     opponent.maxHP = document.getElementById("opponentHitPoints").value;
     opponent.healTrigger = document.getElementById("opponentHealTrigger").value;
-    opponent.chaBonus = document.getElementById("opponentChaBonus").value;
     opponent.max1stSlots = document.getElementById("opponent1stLvlSlots").value;
     opponent.max2ndSlots = document.getElementById("opponent2ndLvlSlots").value;
 
@@ -913,7 +920,7 @@
   }
 
   function rollD(type) {
-    return Math.floor(Math.random() * type) + 1;
+    return parseInt(Math.floor(Math.random() * type) + 1);
   }
 
   function advantageRoll() {
@@ -923,8 +930,8 @@
   }
 
   function rollInitiative() {
-    var marquisInit = rollD(20) + marquis.dexBonus;
-    var opponentInit = rollD(20) + opponent.dexBonus;
+    var marquisInit = (rollD(20) + marquis.dexBonus);
+    var opponentInit = (rollD(20) + opponent.dexBonus);
     if (marquisInit >= opponentInit) { return `marquis` }
     else { return `opponent` }
   }
