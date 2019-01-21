@@ -32,6 +32,9 @@
   .card {
     padding: 3% 3% 0 3%;
   }
+  .section {
+    text-align: center;
+  }
   #marquisSettings {
     background-color: firebrick;
     top: 0;
@@ -211,7 +214,7 @@
     <div id="marquisSettings" class="quadrant">
       <div class="card">
         <div class="title">Marquis</div>
-        <div style="text-align: center;">
+        <div class="section">
           <fieldset class="preferences">
             <legend>Stats</legend>
             <div class="prefColumn">
@@ -232,12 +235,12 @@
           </fieldset>
         </div>
         <br>
-        <div style="text-align: center;">
+        <div class="section">
           <fieldset class="preferences">
             <legend>Tactics</legend>
             <div class="prefColumn">
               <div class="subTitle">Action</div>
-              <div><input type="checkbox" id="marquisSecondWind" onclick="setOptions()" checked /> Second Wind</div>
+              <div><input type="checkbox" id="marquisSecondWind" onclick="setOptions()" /> Second Wind</div>
               <div><input type="radio" name="marquisAction" id="marquisBasicAttack" onclick="setOptions()" /> Basic Attack</div>
               <div><input type="radio" name="marquisAction" id="marquisDisarm" onclick="setOptions()" /> Disarm</div>
               <div><input type="radio" name="marquisAction" id="marquisFeint" onclick="setOptions()" /> Feint</div>
@@ -257,7 +260,7 @@
     <div id="opponentSettings" class="quadrant">
       <div class="card">
         <div class="title">Opponent</div>
-        <div style="text-align: center;">
+        <div class="section">
           <fieldset class="preferences">
             <legend>Stats</legend>
             <div class="prefColumn">
@@ -279,7 +282,7 @@
           </fieldset>
         </div>
         <br>
-        <div style="text-align: center;">
+        <div class="section">
           <fieldset class="preferences">
             <legend>Tactics</legend>
             <div class="prefColumn">
@@ -310,8 +313,7 @@
 
 <script>
   // (Rogue 2 / Fighter 5) vs (Paladin 7)
-  // TODO: 
-  // Add Spells to opponent. Start with Cure Wounds! +1d8HP/slot!
+  // TODO:
   // Add Inspiration to both?
 
   // GLOBAL VARIABLES
@@ -394,9 +396,9 @@
       var damage = 0;
       if (attack === `crit` || attack === `hit`) {
         this.records.attackSuccesses++;
-        damage = mainDMG(this, attack) + this.dmgBonus;
+        damage = this.mainDMG(attack) + this.dmgBonus;
       }
-      dealDMG(opponent, damage);
+      this.dealDMG(damage);
       marquis.records.attackDamage += damage;
       opponent.records.dmgTaken += damage;
       if (this.feintStatus) { this.endFeint() }
@@ -412,6 +414,10 @@
         if (result >= opponent.AC) { return `hit` }
         else { return `miss` }
       }
+    },
+    mainDMG(type) {
+      if (type === `hit`) { return this.hitDMG() }
+      else if (type === `crit`) { return this.critDMG() }
     },
     hitDMG() {
       var hitDamage = rollD(this.weaponDie);
@@ -434,6 +440,9 @@
       // END Disarm Attack Option (Crit)
       if (this.advantage || this.rakishAudacity) { critDamage += this.sneakDMG() + this.sneakDMG() }
       return critDamage;
+    },
+    dealDMG(damage) {
+      opponent.curHP -= damage;
     },
     sneakDMG() {
       var sneakDamage = 0;
@@ -551,7 +560,7 @@
       basicAttack: true,
       smite: false,
       basicDefense: true,
-      cureWounds: false,
+      healing: false,
       bless: false,
       divineFavor: false,
       heroism: false,
@@ -575,7 +584,7 @@
       if (this.action) {
         if (magic && round > 10) { this.sacredWeapon = 0 }
         if (magic && round === 1) { this.sacredWeapon = this.chaBonus }
-        else if (magic && this.healthCheck()) { this.healingMagic() }
+        else if (magic && this.prefs.healing && this.healthCheck()) { this.healingMagic() }
         else { this.attackAction() }
       }
     },
@@ -589,11 +598,11 @@
       if (attack === `crit` || attack === `hit`) {
         this.records.attackSuccesses++;
         if (magic && (this.cur1stSlots || this.cur2ndSlots)) { this.records.smiteSuccesses++ }
-        damage = mainDMG(this, attack) + this.dmgBonus;
+        damage = this.mainDMG(attack) + this.dmgBonus;
         if (marquis.prefs.parry) { damage = marquis.parry(damage) }
       }
       if (attack === `miss` && marquis.prefs.riposte) { marquis.riposte() }
-      dealDMG(marquis, damage);
+      this.dealDMG(damage);
       opponent.records.attackDamage += damage;
       marquis.records.dmgTaken += damage;
     },
@@ -610,6 +619,10 @@
         if (result >= marquis.AC) { return `hit` }
         else { return `miss` }
       }
+    },
+    mainDMG(type) {
+      if (type === `hit`) { return this.hitDMG() }
+      else if (type === `crit`) { return this.critDMG() }
     },
     hitDMG() {
       var hitDamage = rollD(this.weaponDie);
@@ -638,6 +651,9 @@
         }
       }
       return critDamage;
+    },
+    dealDMG(damage) {
+      marquis.curHP -= damage;
     },
     smiteAttackDMG(slot) {
       var smiteDamage = 0;
@@ -716,7 +732,7 @@
 
     document.getElementById("opponentBasicAttack").checked = opponent.prefs.basicAttack;
     document.getElementById("opponentSmite").checked = opponent.prefs.smite;
-    document.getElementById("opponentCureWounds").checked = opponent.prefs.cureWounds;
+    document.getElementById("opponentCureWounds").checked = opponent.prefs.healing;
 
     document.getElementById("opponentBasicDefense").checked = opponent.prefs.basicDefense;
   }
@@ -773,7 +789,7 @@
 
     opponent.prefs.basicAttack = document.getElementById("opponentBasicAttack").checked;
     opponent.prefs.smite = document.getElementById("opponentSmite").checked;
-    opponent.prefs.cureWounds = document.getElementById("opponentCureWounds").checked;
+    opponent.prefs.healing = document.getElementById("opponentCureWounds").checked;
 
     opponent.prefs.basicDefense = document.getElementById("opponentBasicDefense").checked;
   }
@@ -862,24 +878,44 @@
 
   function combatLoop() {
     while (combat) {
-      if (initWinner === `marquis`) { combat = combatTurn(marquis, opponent) }
-      else { combat = combatTurn(opponent, marquis) }
+      combat = combatTurn(initWinner);
       if (combat) { newRound() }
       else { break }
     }
   }
 
-  function combatTurn(first, second) {
-    first.tactics();
-    if (second.curHP <= 0) {
-      first.records.wins++;
-      return false;
-    } else {
-      second.tactics();
-      if (first.curHP <= 0) {
-        second.records.wins++;
+  function combatTurn(firstActor) {
+    if (firstActor === `marquis`) {
+      marquis.tactics();
+      if (opponent.curHP <= 0) {
+        marquis.records.wins++;
         return false;
-      } else { return true }
+      }
+      else {
+        opponent.tactics();
+        if (marquis.curHP <= 0) {
+          opponent.records.wins++;
+          return false;
+        } else {
+          return true;
+        }
+      }
+    }
+    if (firstActor === `opponent`) {
+      opponent.tactics();
+      if (marquis.curHP <= 0) {
+        opponent.records.wins++;
+        return false;
+      }
+      else {
+        marquis.tactics();
+        if (opponent.curHP <= 0) {
+          marquis.records.wins++;
+          return false;
+        } else {
+          return true;
+        }
+      }
     }
   }
 
@@ -909,15 +945,6 @@
     var opponentInit = rollD(20) + opponent.initBonus;
     if (marquisInit >= opponentInit) { return `marquis` }
     else { return `opponent` }
-  }
-
-  function mainDMG(character, type) {
-    if (type === `hit`) { return character.hitDMG() }
-    else if (type === `crit`) { return character.critDMG() }
-  }
-
-  function dealDMG(target, dmg) {
-    target.curHP -= dmg;
   }
 
   function report() {
