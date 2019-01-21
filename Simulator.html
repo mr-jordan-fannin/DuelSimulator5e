@@ -103,13 +103,14 @@
     text-align: right;
   }
   .preferences {
-    display: flex;
-    margin: auto;
+    display: table;
     text-align: left;
-    width: 80%;
+    width: 100%;
   }
   .prefColumn {
-    width: 50%;
+    display: table-cell;
+    padding-bottom: 1%;
+    width: 500px;
   }
   input[type="checkbox"] {
     vertical-align: middle;
@@ -139,8 +140,8 @@
       <div class="card">
         <div class="title">Duel Settings</div>
         <div><input type="number" id="duelCount" class="largeNumber" onclick="setOptions()" min="1" max="10000000" /> Duel Simulation Iterations</div>
-        <div><input type="checkbox" class="checkBox" id="magicAllowed" onclick="setOptions()" checked /> Allow Magic</div>
-        <div><input type="checkbox" class="checkBox" id="disarmEndsDuel" onclick="setOptions()" checked /> Disarm Ends Duel</div>
+        <div><input type="checkbox" class="checkBox" id="magicAllowed" onclick="setOptions()" /> Allow Magic</div>
+        <div><input type="checkbox" class="checkBox" id="disarmEndsDuel" onclick="setOptions()" /> Disarm Ends Duel</div>
       </div>
     </div>
 
@@ -389,64 +390,63 @@
       var damage = 0;
       if (attack === `crit` || attack === `hit`) {
         this.records.attackSuccesses++;
-        damage = (this.mainDMG(attack) + this.dexBonus + 2);
+        damage = (parseInt(this.mainDMG(attack)) + parseInt(this.dexBonus) + 2);
       }
       this.dealDMG(damage);
-      marquis.records.attackDamage += damage;
-      opponent.records.dmgTaken += damage;
       if (this.feintStatus) { this.endFeint() }
     },
     attackRoll() {
       let roll = 0;
-      if (this.advantage) { roll = advantageRoll() }
-      else { roll = rollD(20) }
+      if (this.advantage) { roll = parseInt(advantageRoll()) }
+      else { roll = parseInt(rollD(20)) }
       if (roll === 20) { return `crit` }
       else if (roll === 1) { return `miss` }
       else {
-        let result = (roll + this.dexBonus + this.profBonus);
-        if (result >= opponent.AC) { return `hit` }
+        let result = (parseInt(roll) + parseInt(this.dexBonus) + parseInt(this.profBonus));
+        if (result >= parseInt(opponent.AC)) { return `hit` }
         else { return `miss` }
       }
     },
     mainDMG(type) {
-      if (type === `hit`) { return this.hitDMG() }
-      else if (type === `crit`) { return this.critDMG() }
+      if (type === `hit`) { return parseInt(this.hitDMG()) }
+      else if (type === `crit`) { return parseInt(this.critDMG()) }
     },
     hitDMG() {
       var hitDamage = 0;
-      hitDamage = rollD(this.weaponDie);
+      hitDamage = parseInt(rollD(this.weaponDie));
       // START Disarm Attack Option (Hit)
       if (this.prefs.disarm || this.feintStatus || this.riposteStatus) {
-        hitDamage += this.superiorityDie();
+        hitDamage += parseInt(this.superiorityDie());
         if (this.prefs.disarm) { this.disarmManeuver() }
       }
       // END Disarm Attack Option (Hit)
-      if (this.advantage || this.rakishAudacity) { hitDamage += this.sneakDMG() }
+      if (this.advantage || this.rakishAudacity) { hitDamage += parseInt(this.sneakDMG()) }
       return hitDamage;
     },
     critDMG() {
       var critDamage = 0;
-      critDamage = (rollD(this.weaponDie) + rollD(this.weaponDie));
+      critDamage = (parseInt(rollD(this.weaponDie)) + parseInt(rollD(this.weaponDie)));
       // START Disarm Attack Option (Crit)
       if (this.prefs.disarm || this.feintStatus || this.riposteStatus) {
-        critDamage += (this.superiorityDie() + this.superiorityDie());
+        critDamage += (parseInt(this.superiorityDie()) + parseInt(this.superiorityDie()));
         if (this.prefs.disarm) { this.disarmManeuver() }
       }
       // END Disarm Attack Option (Crit)
-      if (this.advantage || this.rakishAudacity) { critDamage += (this.sneakDMG() + this.sneakDMG()) }
+      if (this.advantage || this.rakishAudacity) { critDamage += (parseInt(this.sneakDMG()) + parseInt(this.sneakDMG())) }
       return critDamage;
     },
     dealDMG(damage) {
+      marquis.records.attackDamage += parseInt(damage);
       opponent.curHP -= parseInt(damage);
       opponent.records.dmgTaken += parseInt(damage);
     },
     sneakDMG() {
       var sneakDamage = 0;
-      for (var i = 0; i < this.sneakDice; i++) { sneakDamage += rollD(6) }
+      for (var i = 0; i < this.sneakDice; i++) { sneakDamage += parseInt(rollD(6)) }
       return sneakDamage;
     },
     superiorityDie() {
-      return rollD(8);
+      return parseInt(rollD(8));
     },
     disarmManeuver() {
       if (this.maneuver && this.curSuperiorityDice && !this.riposteStatus) {
@@ -455,9 +455,9 @@
         this.records.maneuverAttempts++;
         this.records.disarmAttempts++;
         if (disarmEndsDuel) {
-          var opponentSave = rollD(20) + opponent.strBonus;
-          if (magic) { opponentSave += opponent.chaBonus }
-          if (opponentSave < (8 + this.profBonus + this.dexBonus)) {
+          var opponentSave = (parseInt(rollD(20)) + parseInt(opponent.strBonus));
+          if (magic) { opponentSave += parseInt(opponent.chaBonus) }
+          if (opponentSave < (8 + parseInt(this.profBonus) + parseInt(this.dexBonus))) {
             this.records.disarmSuccesses++;
             if (disarmEndsDuel) { opponent.curHP = 0 }
           }
@@ -485,9 +485,9 @@
         this.reaction = 0;
         this.curSuperiorityDice--;
         this.records.maneuverAttempts++;
-        parryReduction = (this.superiorityDie() + marquis.dexBonus);
+        parryReduction = (parseInt(this.superiorityDie()) + parseInt(marquis.dexBonus));
       }
-      var newDamage = (damage - parryReduction);
+      var newDamage = (parseInt(damage) - parryReduction);
       if (newDamage < 0) { newDamage = 0 }
       return newDamage;
     },
@@ -506,16 +506,16 @@
       var defensiveBonus = 0;
       if (this.reaction) {
         this.reaction = 0;
-        defensiveBonus = this.profBonus;
+        defensiveBonus = parseInt(this.profBonus);
       }
-      if (result < (marquis.AC + defensiveBonus)) { return `miss` }
+      if (result < (parseInt(marquis.AC) + parseInt(defensiveBonus))) { return `miss` }
       else { return `hit` }
     },
     healthCheck() {
       return (this.prefs.secondWind && this.secondWindRemaining && (this.curHP <= (this.maxHP - this.healTrigger)));
     },
     secondWind() {
-      this.curHP += (rollD(10) + 5);
+      this.curHP += (parseInt(rollD(10)) + 5);
       if (this.curHP > this.maxHP) { this.curHP = this.maxHP }
       this.secondWindRemaining = false;
     }
@@ -575,7 +575,7 @@
     tactics() {
       if (this.action) {
         if (magic && round > 10) { this.sacredWeapon = 0 }
-        if (magic && round === 1) { this.sacredWeapon = this.chaBonus }
+        if (magic && round === 1) { this.sacredWeapon = parseInt(this.chaBonus) }
         else if (magic && this.healthCheck()) { this.healingMagic() }
         else { this.attackAction() }
       }
@@ -590,69 +590,68 @@
       if (attack === `crit` || attack === `hit`) {
         this.records.attackSuccesses++;
         if (magic && (this.cur1stSlots || this.cur2ndSlots)) { this.records.smiteSuccesses++ }
-        damage = (this.mainDMG(attack) + this.strBonus);
-        if (marquis.prefs.parry) { damage = marquis.parry(damage) }
+        damage = (parseInt(this.mainDMG(attack)) + parseInt(this.strBonus));
+        if (marquis.prefs.parry) { damage = parseInt(marquis.parry(damage)) }
       }
       if (attack === `miss` && marquis.prefs.riposte) { marquis.riposte() }
       this.dealDMG(damage);
-      opponent.records.attackDamage += damage;
-      marquis.records.dmgTaken += damage;
     },
     attackRoll() {
       let roll = 0;
-      if (this.advantage) { roll = advantageRoll() }
+      if (this.advantage) { roll = parseInt(advantageRoll()) }
       else { roll = rollD(20) }
       if (roll === 20) { return `crit` }
       else if (roll === 1) { return `miss` }
       else {
-        let result = (roll + this.strBonus + this.profBonus);
-        if (magic) { result += this.sacredWeapon }
-        if (result < (marquis.AC + marquis.profBonus)) { return marquis.defensiveDuelist(result) }
-        if (result >= marquis.AC) { return `hit` }
+        let result = (roll + parseInt(this.strBonus) + parseInt(this.profBonus));
+        if (magic) { result += parseInt(this.sacredWeapon) }
+        if (result < (parseInt(marquis.AC) + parseInt(marquis.profBonus))) { return marquis.defensiveDuelist(result) }
+        if (result >= parseInt(marquis.AC)) { return `hit` }
         else { return `miss` }
       }
     },
     mainDMG(type) {
-      if (type === `hit`) { return this.hitDMG() }
-      else if (type === `crit`) { return this.critDMG() }
+      if (type === `hit`) { return parseInt(this.hitDMG()) }
+      else if (type === `crit`) { return parseInt(this.critDMG()) }
     },
     hitDMG() {
       var hitDamage = 0;
-      hitDamage = rollD(this.weaponDie);
+      hitDamage = parseInt(rollD(this.weaponDie));
       if (magic && this.prefs.smite) {
         if (this.cur2ndSlots) {
           this.cur2ndSlots--;
-          hitDamage += this.smiteAttackDMG(2);
+          hitDamage += parseInt(this.smiteAttackDMG(2));
         }
         else if (this.cur1stSlots) {
           this.cur1stSlots--;
-          hitDamage += this.smiteAttackDMG(1);
+          hitDamage += parseInt(this.smiteAttackDMG(1));
         }
       }
       return hitDamage;
     },
     critDMG() {
       var critDamage = 0;
-      critDamage = (rollD(this.weaponDie) + rollD(this.weaponDie));
+      critDamage = (parseInt(rollD(this.weaponDie)) + parseInt(rollD(this.weaponDie)));
       if (magic && this.prefs.smite) {
         if (this.cur2ndSlots) {
           this.cur2ndSlots--;
-          critDamage += (this.smiteAttackDMG(2) + this.smiteAttackDMG(2));
+          critDamage += (parseInt(this.smiteAttackDMG(2)) + parseInt(this.smiteAttackDMG(2)));
         }
         else if (this.cur1stSlots) {
           this.cur1stSlots--;
-          critDamage += (this.smiteAttackDMG(1) + this.smiteAttackDMG(1));
+          critDamage += (parseInt(this.smiteAttackDMG(1)) + parseInt(this.smiteAttackDMG(1)));
         }
       }
       return critDamage;
     },
     dealDMG(damage) {
+      opponent.records.attackDamage += parseInt(damage);
       marquis.curHP -= parseInt(damage);
       marquis.records.dmgTaken += parseInt(damage);
     },
     smiteAttackDMG(slot) {
       var smiteDamage = 0;
-      for (var i = 0; i < slot; i++) { smiteDamage += rollD(8) }
+      for (var i = 0; i < slot; i++) { smiteDamage += parseInt(rollD(8)) }
       opponent.records.slotsSpent++;
       return smiteDamage;
     },
@@ -661,7 +660,7 @@
     },
     healingMagic() {
       if (this.curHealHP) {
-        this.curHP += this.curHealHP;
+        this.curHP += parseInt(this.curHealHP);
         this.curHealHP = 0;
       }
       else if (this.cur2ndSlots) {
@@ -672,12 +671,12 @@
         this.cur1stSlots--;
         this.curHP += this.cureWounds(1);
       }
-      if (this.curHP > this.maxHP) { this.curHP = this.maxHP }
+      if (this.curHP > this.maxHP) { this.curHP = parseInt(this.maxHP) }
     },
     cureWounds(slot) {
       var cureWoundsHP = 0;
-      for (var i = 0; i < slot; i++) { cureWoundsHP += rollD(8) }
-      cureWoundsHP += this.chaBonus;
+      for (var i = 0; i < slot; i++) { cureWoundsHP += parseInt(rollD(8)) }
+      cureWoundsHP += parseInt(this.chaBonus);
       return cureWoundsHP;
     }
   }
@@ -873,14 +872,14 @@
     }
   }
 
-  function combatTurn(firstActor) {
-    if (firstActor === `marquis`) {
+  function combatTurn(initWinner) {
+    if (initWinner === `marquis`) {
       marquis.tactics();
       if (opponent.curHP <= 0) {
         marquis.records.wins++;
         return false;
       }
-      else {
+      if (opponent.curHP > 0) {
         opponent.tactics();
         if (marquis.curHP <= 0) {
           opponent.records.wins++;
@@ -890,13 +889,13 @@
         }
       }
     }
-    if (firstActor === `opponent`) {
+    if (initWinner === `opponent`) {
       opponent.tactics();
       if (marquis.curHP <= 0) {
         opponent.records.wins++;
         return false;
       }
-      else {
+      if (marquis.curHP > 0) {
         marquis.tactics();
         if (opponent.curHP <= 0) {
           marquis.records.wins++;
@@ -924,16 +923,16 @@
   }
 
   function advantageRoll() {
-    var roll1 = rollD(20);
-    var roll2 = rollD(20);
+    var roll1 = parseInt(rollD(20));
+    var roll2 = parseInt(rollD(20));
     return (roll1 >= roll2 ? roll1 : roll2);
   }
 
   function rollInitiative() {
-    var marquisInit = (rollD(20) + marquis.dexBonus);
-    var opponentInit = (rollD(20) + opponent.dexBonus);
+    var marquisInit = (parseInt(rollD(20)) + parseInt(marquis.dexBonus));
+    var opponentInit = (parseInt(rollD(20)) + parseInt(opponent.dexBonus));
     if (marquisInit >= opponentInit) { return `marquis` }
-    else { return `opponent` }
+    if (opponentInit > marquisInit) { return `opponent` }
   }
 
   function report() {
@@ -986,6 +985,7 @@
   }
 
   setDefaults();
+  main();
 
 </script>
 
