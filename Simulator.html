@@ -289,7 +289,7 @@
               <div class="subTitle">Action</div>
               <div><input type="radio" name="opponentAction" id="opponentBasicAttack" onclick="setOptions()" /> Basic Attack</div>
               <div><input type="radio" name="opponentAction" id="opponentSmite" onclick="setOptions()" /> Smite</div>
-              <div><input type="radio" name="opponentAction" id="opponentCureWounds" onclick="setOptions()" /> Healing</div>
+              <div><input type="radio" name="opponentAction" id="opponentHealing" onclick="setOptions()" /> Healing</div>
             </div>
             <div class="prefColumn">
               <div class="subTitle">Reaction</div>
@@ -390,7 +390,7 @@
       this.maneuver = 1;
       this.records.attackAttempts++;
       // START Feint Attack Option
-      if (this.prefs.feint) { this.feintAttack() }
+      if (this.prefs.feint && !this.riposteStatus) { this.feintAttack() }
       // END Feint Attack Option
       var attack = this.attackRoll();
       var damage = 0;
@@ -422,7 +422,7 @@
     hitDMG() {
       var hitDamage = rollD(this.weaponDie);
       // START Disarm Attack Option (Hit)
-      if (this.prefs.disarm || this.prefs.feintStatus) {
+      if (this.prefs.disarm || this.feintStatus || this.riposteStatus) {
         hitDamage += this.superiorityDie();
         if (this.prefs.disarm) { this.disarmManeuver() }
       }
@@ -433,7 +433,7 @@
     critDMG() {
       var critDamage = this.hitDMG() + this.hitDMG();
       // START Disarm Attack Option (Crit)
-      if (this.prefs.disarm || this.feintStatus) {
+      if (this.prefs.disarm || this.feintStatus || this.riposteStatus) {
         critDamage += this.superiorityDie() + this.superiorityDie();
         if (this.prefs.disarm) { this.disarmManeuver() }
       }
@@ -732,7 +732,7 @@
 
     document.getElementById("opponentBasicAttack").checked = opponent.prefs.basicAttack;
     document.getElementById("opponentSmite").checked = opponent.prefs.smite;
-    document.getElementById("opponentCureWounds").checked = opponent.prefs.healing;
+    document.getElementById("opponentHealing").checked = opponent.prefs.healing;
 
     document.getElementById("opponentBasicDefense").checked = opponent.prefs.basicDefense;
   }
@@ -789,7 +789,7 @@
 
     opponent.prefs.basicAttack = document.getElementById("opponentBasicAttack").checked;
     opponent.prefs.smite = document.getElementById("opponentSmite").checked;
-    opponent.prefs.healing = document.getElementById("opponentCureWounds").checked;
+    opponent.prefs.healing = document.getElementById("opponentHealing").checked;
 
     opponent.prefs.basicDefense = document.getElementById("opponentBasicDefense").checked;
   }
