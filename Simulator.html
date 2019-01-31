@@ -247,9 +247,7 @@
             <div class="prefColumn">
               <div class="subTitle">Reaction</div>
               <div><input type="radio" name="marquisReaction" id="marquisBasicDefense" onclick="setOptions()" /> Basic Defense</div>
-              <div><input type="radio" name="marquisReaction" id="marquisParry" onclick="setOptions()" /> Parry</div>
               <div><input type="radio" name="marquisReaction" id="marquisRiposte" onclick="setOptions()" /> Riposte</div>
-              <div><input type="radio" name="marquisReaction" id="marquisDefenseManeuvers" onclick="setOptions()" /> Defense Maneuvers</div>
             </div>
           </fieldset>
         </div>
@@ -345,9 +343,7 @@
       disarm: false,
       feint: false,
       basicDefense: true,
-      parry: false,
-      riposte: false,
-      defenseManeuvers: false
+      riposte: false
     },
     curHP: 60,
     maxHP: 60,
@@ -473,18 +469,6 @@
       this.advantage = false;
       this.feintStatus = false;
     },
-    parry(damage) {
-      var parryReduction = 0;
-      if (this.reaction && this.curSuperiorityDice) {
-        this.reaction = 0;
-        this.curSuperiorityDice--;
-        this.records.maneuverAttempts++;
-        parryReduction = (this.superiorityDie() + marquis.dexBonus);
-      }
-      var newDamage = (damage - parryReduction);
-      if (newDamage < 0) { newDamage = 0 }
-      return newDamage;
-    },
     riposte() {
       if (this.reaction && this.curSuperiorityDice) {
         this.reaction = 0;
@@ -583,7 +567,6 @@
         this.records.attackSuccesses++;
         if (magic && (this.cur1stSlots || this.cur2ndSlots)) { this.records.smiteSuccesses++ }
         damage = (this.mainDMG(attack) + this.strBonus);
-        if (marquis.prefs.parry) { damage = marquis.parry(damage) }
         this.dealDMG(damage);
       }
       if (attack === `miss` && marquis.prefs.riposte) { marquis.riposte() }
@@ -710,9 +693,7 @@
       { id: "marquisDisarm", checked: marquis.prefs.disarm },
       { id: "marquisFeint", checked: marquis.prefs.feint },
       { id: "marquisBasicDefense", checked: marquis.prefs.basicDefense },
-      { id: "marquisParry", checked: marquis.prefs.parry },
       { id: "marquisRiposte", checked: marquis.prefs.riposte },
-      { id: "marquisDefenseManeuvers", checked: marquis.prefs.defenseManeuvers },
       { id: "opponentBasicAttack", checked: opponent.prefs.basicAttack },
       { id: "opponentSmite", checked: opponent.prefs.smite },
       { id: "opponentHealing", checked: opponent.prefs.healing },
@@ -755,13 +736,7 @@
     marquis.prefs.feint = document.getElementById("marquisFeint").checked;
 
     marquis.prefs.basicDefense = document.getElementById("marquisBasicDefense").checked;
-    marquis.prefs.parry = document.getElementById("marquisParry").checked;
     marquis.prefs.riposte = document.getElementById("marquisRiposte").checked;
-    marquis.prefs.defenseManeuvers = document.getElementById("marquisDefenseManeuvers").checked;
-    if (marquis.prefs.defenseManeuvers) {
-      marquis.prefs.parry = true;
-      marquis.prefs.riposte = true;
-    }
 
     opponent.attacks = parseInt(document.getElementById("opponentAttacks").value);
     opponent.profBonus = parseInt(document.getElementById("opponentProficiency").value);
